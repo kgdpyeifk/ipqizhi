@@ -1,119 +1,118 @@
 name: Format IP List
 
-    on:
-      schedule:
-        # 每天运行一次
-        - cron: '0 0 * * *'
-      workflow_dispatch:  # 允许手动触发
+on:
+  schedule:
+    # 每天运行一次
+    - cron: '0 0 * * *'
+  workflow_dispatch:  # 允许手动触发
 
-    jobs:
-      format-ip:
-        runs-on: ubuntu-latest
-        
-        steps:
-          - name: Checkout repository
-            uses: actions/checkout@v4
-
-          - name: Set up Python
-            uses: actions/setup-python@v5
-            with:
-              python-version: '3.11'
-
-          - name: Install dependencies
-            run: |
-              python -m pip install --upgrade pip
-              # 不需要额外依赖
-
-          - name: Create format script
-            run: |
-              cat > format_ip.py << 'EOF'
-              import requests
-
-              # 地区代码到旗帜和中文名称的映射
-              region_mapping = {
-                  'HK': ('🇭🇰', '香港'),
-                  'TW': ('🇹🇼', '台湾'),
-                  'US': ('🇺🇸', '美国'),
-                  'JP': ('🇯🇵', '日本'),
-                  'SG': ('🇸🇬', '新加坡'),
-                  'KR': ('🇰🇷', '韩国'),
-                  'DE': ('🇩🇪', '德国'),
-                  'UK': ('🇬🇧', '英国'),
-                  'FR': ('🇫🇷', '法国'),
-                  'CA': ('🇨🇦', '加拿大'),
-                  'AU': ('🇦🇺', '澳大利亚'),
-                  'IN': ('🇮🇳', '印度'),
-                  'RU': ('🇷🇺', '俄罗斯'),
-                  'CN': ('🇨🇳', '中国'),
-                  # 可以根据需要添加更多地区映射
-              }
-
-              def format_ip_list():
-                  # 获取原始IP列表
-                  url = "https://raw.githubusercontent.com/kgdpyeifk/github-ip-speedtest/refs/heads/main/top10.txt"
-                  try:
-                      response = requests.get(url)
-                      response.raise_for_status()  # 检查请求是否成功
-                  except requests.exceptions.RequestException as e:
-                      print(f"获取IP列表失败: {e}")
-                      return False
-
-                  # 处理每一行
-                  formatted_lines = []
-                  for line in response.text.splitlines():
-                      line = line.strip()
-                      if not line:
-                          continue
-                          
-                      # 分割IP和地区代码
-                      parts = line.split('#')
-                      if len(parts) != 2:
-                          # 格式不正确的行，直接保留原内容
-                          formatted_lines.append(line)
-                          continue
-                          
-                      ip_port = parts[0]
-                      region_code = parts[1]
-                      
-                      # 获取对应的旗帜和中文名称，如果没有则使用默认值
-                      flag, chinese_name = region_mapping.get(
-                          region_code, 
-                          ('🏳️', f'未知({region_code})')
-                      )
-                      
-                      # 格式化新行
-                      new_line = f"{ip_port}#{flag}{region_code}-{chinese_name}"
-                      formatted_lines.append(new_line)
-
-                  # 保存到文件
-                  try:
-                      with open('ip.txt', 'w', encoding='utf-8') as f:
-                          f.write('\n'.join(formatted_lines) + '\n')
-                      return True
-                  except IOError as e:
-                      print(f"写入文件失败: {e}")
-                      return False
-
-              if __name__ == "__main__":
-                  success = format_ip_list()
-                  exit(0 if success else 1)
-              EOF
-
-          - name: Run format script
-            run: python format_ip.py
-
-          - name: Commit and push changes
-            run: |
-              git config --global user.name 'GitHub Action'
-              git config --global user.email 'action@github.com'
-              git add ip.txt
-              
-              # 检查是否有更改
-              if git diff --cached --quiet; then
-                  echo "没有需要提交的更改"
-                  exit 0
-              fi
-              
-              git commit -m "Update IP list with formatted regions"
-              git push
+jobs:
+  format-ip:
+    runs-on: ubuntu-latest
     
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          # 不需要额外依赖
+
+      - name: Create format script
+        run: |
+          cat > format_ip.py << 'EOF'
+          import requests
+
+          # 地区代码到旗帜和中文名称的映射
+          region_mapping = {
+              'HK': ('🇭🇰', '香港'),
+              'TW': ('🇹🇼', '台湾'),
+              'US': ('🇺🇸', '美国'),
+              'JP': ('🇯🇵', '日本'),
+              'SG': ('🇸🇬', '新加坡'),
+              'KR': ('🇰🇷', '韩国'),
+              'DE': ('🇩🇪', '德国'),
+              'UK': ('🇬🇧', '英国'),
+              'FR': ('🇫🇷', '法国'),
+              'CA': ('🇨🇦', '加拿大'),
+              'AU': ('🇦🇺', '澳大利亚'),
+              'IN': ('🇮🇳', '印度'),
+              'RU': ('🇷🇺', '俄罗斯'),
+              'CN': ('🇨🇳', '中国'),
+              # 可以根据需要添加更多地区映射
+          }
+
+          def format_ip_list():
+              # 获取原始IP列表
+              url = "https://raw.githubusercontent.com/kgdpyeifk/github-ip-speedtest/refs/heads/main/top10.txt"
+              try:
+                  response = requests.get(url)
+                  response.raise_for_status()  # 检查请求是否成功
+              except requests.exceptions.RequestException as e:
+                  print(f"获取IP列表失败: {e}")
+                  return False
+
+              # 处理每一行
+              formatted_lines = []
+              for line in response.text.splitlines():
+                  line = line.strip()
+                  if not line:
+                      continue
+                      
+                  # 分割IP和地区代码
+                  parts = line.split('#')
+                  if len(parts) != 2:
+                      # 格式不正确的行，直接保留原内容
+                      formatted_lines.append(line)
+                      continue
+                      
+                  ip_port = parts[0]
+                  region_code = parts[1]
+                  
+                  # 获取对应的旗帜和中文名称，如果没有则使用默认值
+                  flag, chinese_name = region_mapping.get(
+                      region_code, 
+                      ('🏳️', f'未知({region_code})')
+                  )
+                  
+                  # 格式化新行
+                  new_line = f"{ip_port}#{flag}{region_code}-{chinese_name}"
+                  formatted_lines.append(new_line)
+
+              # 保存到文件
+              try:
+                    with open('ip.txt', 'w', encoding='utf-8') as f:
+                        f.write('\n'.join(formatted_lines) + '\n')
+                    return True
+                except IOError as e:
+                    print(f"写入文件失败: {e}")
+                    return False
+
+          if __name__ == "__main__":
+              success = format_ip_list()
+              exit(0 if success else 1)
+          EOF
+
+      - name: Run format script
+        run: python format_ip.py
+
+      - name: Commit and push changes
+        run: |
+          git config --global user.name 'GitHub Action'
+          git config --global user.email 'action@github.com'
+          git add ip.txt
+          
+          # 检查是否有更改
+          if git diff --cached --quiet; then
+              echo "没有需要提交的更改"
+              exit 0
+          fi
+          
+          git commit -m "Update IP list with formatted regions"
+          git push
