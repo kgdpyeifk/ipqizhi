@@ -92,10 +92,10 @@ jobs:
                   with open('ip.txt', 'r', encoding='utf-8') as f:
                       existing_lines = [line.strip() for line in f if line.strip()]
 
-              # 如果现有内容缺少 -备用线路，添加它
+              # 强制检查并添加 -备用线路
               needs_update = False
               for i in range(len(formatted_lines)):
-                  if '-备用线路' not in formatted_lines[i] and formatted_lines[i] not in existing_lines:
+                  if '-备用线路' not in formatted_lines[i]:
                       formatted_lines[i] += '-备用线路'
                       needs_update = True
 
