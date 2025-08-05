@@ -3,7 +3,7 @@ name: Format IP List
 on:
   schedule:
     # 每天运行一次
-    - cron: '0 11 * * *'
+    - cron: '0 12 * * *'
   workflow_dispatch:  # 允许手动触发
 
 jobs:
